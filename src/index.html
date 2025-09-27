@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SSE Streaming Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    #output {
+      white-space: pre-wrap;
+      border: 1px solid #ddd;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      min-height: 150px;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .done {
+      color: green;
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>📡 Streaming Users (SSE)</h1>
+  <div id="output"></div>
+  <span id="status"></span>
+
+  <script>
+    const output = document.getElementById('output');
+    const status = document.getElementById('status');
+
+    // ✅ عدل الـ URL لو API عندك شغال في port أو path مختلف
+    const eventSource = new EventSource('http://localhost:3000/users/stream?mode=word');
+
+    eventSource.onmessage = (event) => {
+      if (event.data === "[DONE]") {
+        status.innerHTML = "✅ Stream finished";
+        status.className = "done";
+        eventSource.close();
+      } else {
+        output.textContent += event.data + " ";
+      }
+    };
+
+    eventSource.onerror = (err) => {
+      console.error("SSE error:", err);
+      status.innerHTML = "❌ Connection lost";
+    };
+  </script>
+</body>
+</html>
