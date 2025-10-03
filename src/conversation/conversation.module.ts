@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConversationService } from './conversation.service';
 import { ConversationController } from './conversation.controller';
-import { GeminiService } from './gemini.service';
 import { Conversation, ConversationSchema } from './schema/conversation.schema';
 import { HttpModule } from '@nestjs/axios';
+import { GeminiProvider } from 'src/providers/gemini.provider';
 
 @Module({
   imports: [
@@ -13,7 +13,7 @@ import { HttpModule } from '@nestjs/axios';
     ]),
         HttpModule
   ],
-  providers: [ConversationService, GeminiService],
+  providers: [ConversationService, GeminiProvider],
   controllers: [ConversationController],
 })
 export class ConversationModule {}

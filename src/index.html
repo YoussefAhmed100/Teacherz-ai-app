@@ -2,57 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>SSE Streaming Demo</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f9f9f9;
-    }
-    #output {
-      white-space: pre-wrap;
-      border: 1px solid #ddd;
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      min-height: 150px;
-      font-size: 16px;
-      line-height: 1.5;
-    }
-    .done {
-      color: green;
-      font-weight: bold;
-      margin-top: 10px;
-      display: block;
-    }
-  </style>
+  <title>Conversation Streaming</title>
 </head>
 <body>
-  <h1>📡 Streaming Users (SSE)</h1>
+  <h2>Ask Question</h2>
+  <button onclick="askQuestion()">Ask</button>
   <div id="output"></div>
-  <span id="status"></span>
 
   <script>
-    const output = document.getElementById('output');
-    const status = document.getElementById('status');
+    async function askQuestion() {
+      const res = await fetch("http://localhost:3000/conversation/ask?mode=chunk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: " مع حفظ المصطلحات اشرح الفرق بين login and register",
+          userId: "652f1e5d9c1234567890abcd",
+        }),
+      });
 
-    // ✅ عدل الـ URL لو API عندك شغال في port أو path مختلف
-    const eventSource = new EventSource('http://localhost:3000/users/stream?mode=word');
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
 
-    eventSource.onmessage = (event) => {
-      if (event.data === "[DONE]") {
-        status.innerHTML = "✅ Stream finished";
-        status.className = "done";
-        eventSource.close();
-      } else {
-        output.textContent += event.data + " ";
+      const output = document.getElementById("output");
+      output.innerHTML = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n\n").filter(Boolean);
+
+        lines.forEach(line => {
+          if (line.startsWith("data:")) {
+            const data = line.replace("data:", "").trim();
+            if (data === "[DONE]") {
+              output.innerHTML += "<br/><b>✅ Finished</b>";
+            } else {
+              output.innerHTML += " " + data;
+            }
+          }
+        });
       }
-    };
-
-    eventSource.onerror = (err) => {
-      console.error("SSE error:", err);
-      status.innerHTML = "❌ Connection lost";
-    };
+    }
   </script>
 </body>
 </html>

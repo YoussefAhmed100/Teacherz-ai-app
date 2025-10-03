@@ -2,7 +2,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { setupMongooseConnectionEvents } from './database/database.providers';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import * as Joi from 'joi';
@@ -35,7 +34,6 @@ import { ConversationModule } from './conversation/conversation.module';
         const dbName = configService.get<string>('MONGO_DB_NAME');
 
         // 🚀 enable listeners
-        setupMongooseConnectionEvents();
 
         return {
           uri,

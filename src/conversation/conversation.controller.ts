@@ -1,60 +1,93 @@
-// conversation.controller.ts
-import { Controller, Body, Sse, Query } from '@nestjs/common';
-import { ConversationService } from './conversation.service';
-import { Observable, interval} from 'rxjs';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {
+  Controller,
+  Post,
+  Body,
 
+  Query,
+  Res,
+} from '@nestjs/common';
+import type { Response } from 'express';
+
+import { ConversationService } from './conversation.service';
+import { ConversationDto } from './dtos/conversation.dto';
+import { ApiBody, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('Conversation')
 @Controller('conversation')
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
 
-  // @Post('ask')
-  // async askQuestion(@Body('question') question: string, @Body('lessonId') lessonId?: string) {
-  //   return this.conversationService.handleConversation(question, lessonId);
-  // }
- 
+  @Post('ask')
+  @ApiBody({ type: ConversationDto })
+  @ApiQuery({
+    name: 'mode',
+    enum: ['word', 'chunk'],
+    required: false,
+    description: 'Streaming mode: send response word by word or chunk by chunk',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Streamed response (SSE)',
+    content: {
+      'text/event-stream': {
+        example: [
+          { data: 'قانون' },
+          { data: 'نيوتن' },
+          { data: 'الأول' },
+          { data: '[DONE]' },
+        ],
+      },
+    },
+  })
+  async askQuestion(
+    @Body() body: ConversationDto,
+    @Query('mode') mode: 'word' | 'chunk' = 'chunk',
+    @Res() res: Response,
+  ) {
+  
 
-@Sse('ask')
-async askQuestion(
-  @Body('question') question: string,
-  @Query('mode') mode: 'word' | 'chunk' = 'chunk',
-): Promise<Observable<{ data: string }>> {
-  const result = await this.conversationService.handleConversation(question);
-  const answer = result.answer;
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
 
-  if (mode === 'word') {
-    const words = answer.split(' ');
+    const result = await this.conversationService.handleConversation(body);
+    const answer = result.answer.trim();
 
-    return new Observable<{ data: string }>((subscriber) => {
+    if (mode === 'word') {
+      const words = answer
+        .split(/\s+/)
+        .map((w) => w.trim())
+        .filter((w) => w.length > 0);
+
       let index = 0;
-      const source$ = interval(200).subscribe(() => {
+      const intervalId = setInterval(() => {
         if (index < words.length) {
-          subscriber.next({ data: words[index] });
-          index++;
+          res.write(`data: ${words[index++]}\n\n`);
         } else {
-          subscriber.next({ data: '[DONE]' });
-          subscriber.complete();
+          res.write(`data: [DONE]\n\n`);
+          res.end();
+          clearInterval(intervalId);
         }
-      });
+      }, 200);
+    } else {
+      const chunks = answer
+        .split(/(?<=[.?!])\s+/)
+        .map((c) => c.trim())
+        .filter((c) => c.length > 0);
 
-      return () => source$.unsubscribe();
-    });
+      let index = 0;
+      const intervalId = setInterval(() => {
+        if (index < chunks.length) {
+          res.write(`data: ${chunks[index++]}\n\n`);
+        } else {
+          res.write(`data: [DONE]\n\n`);
+          res.end();
+          clearInterval(intervalId);
+        }
+      }, 1000);
+    }
   }
-
-  const chunks = answer.split(/(?<=[.?!])\s+/);
-
-  return new Observable<{ data: string }>((subscriber) => {
-    let index = 0;
-    const source$ = interval(1000).subscribe(() => {
-      if (index < chunks.length) {
-        subscriber.next({ data: chunks[index] });
-        index++;
-      } else {
-        subscriber.next({ data: '[DONE]' });
-        subscriber.complete();
-      }
-    });
-
-    return () => source$.unsubscribe();
-  });
-}
 }

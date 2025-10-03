@@ -1,22 +1,21 @@
-// conversation.service.ts
+
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Conversation } from './schema/conversation.schema';
-import { GeminiService } from './gemini.service';
-
+import { ConversationDto } from './dtos/conversation.dto';
+import { GeminiProvider } from 'src/providers/gemini.provider';
 @Injectable()
 export class ConversationService {
   constructor(
     @InjectModel(Conversation.name) private conversationModel: Model<Conversation>,
-    private readonly geminiService: GeminiService,
+    private  readonly geminiProvider: GeminiProvider,
   ) {}
 
-  async handleConversation(question: string, lessonId?: string) {
-    // Step 1: بعت السؤال لـ Gemini
-    const answer = await this.geminiService.askGemini(question);
+  async handleConversation(dtos:ConversationDto) {
+    const{question, lessonId}=dtos
+    const answer = await this.geminiProvider.generateAnswer(question);
 
-    // Step 2: خزن في MongoDB
     const conversation = new this.conversationModel({
       question,
       answer,
@@ -24,11 +23,12 @@ export class ConversationService {
     });
     await conversation.save();
 
-    // Step 3: رجّع response للـ frontend
     return {
       question,
       answer,
-      lessonId,
+      lessonId
+     
     };
   }
 }
+

@@ -26,8 +26,8 @@ app.enableCors({
 
   // Swagger config
   const config = new DocumentBuilder()
-    .setTitle('Movie Streaming API')
-    .setDescription('API for Movie & Series Platform')
+    .setTitle('Teacherz Streaming API')
+    .setDescription('API for TeacherZ ')
     .setVersion('1.0')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'Authorization')
     .build();
