@@ -10,7 +10,7 @@ import { ConversationModule } from './conversation/conversation.module';
 
 @Module({
   imports: [
-    // ✅ 1. ConfigModule with validation
+    //  ConfigModule with validation
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
@@ -25,7 +25,6 @@ import { ConversationModule } from './conversation/conversation.module';
       limit: 5,
     }]),
 
-    // ✅ 2. MongoDB connection
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -33,7 +32,7 @@ import { ConversationModule } from './conversation/conversation.module';
         const uri = configService.get<string>('MONGO_URI');
         const dbName = configService.get<string>('MONGO_DB_NAME');
 
-        // 🚀 enable listeners
+        //  enable listeners
 
         return {
           uri,
@@ -43,10 +42,6 @@ import { ConversationModule } from './conversation/conversation.module';
         };
       },
     }),
-
-  
-
-    // ✅ 4. Feature Modules
     UsersModule,
     AuthModule,
     ConversationModule,
