@@ -6,7 +6,10 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get("/")
-  getHello(): string {
-    return this.appService.getHello();
+  healthCheck() {
+    return {
+      status: 'ok',
+      message: 'Teacherz API is running 🚀',
+    };
   }
 }
