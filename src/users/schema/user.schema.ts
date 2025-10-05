@@ -5,10 +5,10 @@ import { Role } from 'src/auth/enums/roles.enum';
 
 @Schema({ timestamps: true })
 export class User {
-  @Prop({ unique: true, required: true, index: true })
+  @Prop({ unique: true, required: true ,indexes:true})
   email: string;
 
-  @Prop({ unique: true, required: true })
+  @Prop({ required: true })
   username: string;
 
   @Prop({ required: true })
