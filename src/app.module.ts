@@ -6,7 +6,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import * as Joi from 'joi';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ConversationModule } from './conversation/conversation.module';
+import { AiIntegrationModule } from './ai-integration/ai-integration.module';
 
 @Module({
   imports: [
@@ -44,7 +44,8 @@ import { ConversationModule } from './conversation/conversation.module';
     }),
     UsersModule,
     AuthModule,
-    ConversationModule,
+    
+    AiIntegrationModule,
   ],
 })
 export class AppModule {}
