@@ -28,18 +28,17 @@ export class AiIntegrationController {
   @ApiResponse({ status: 200, description: 'تم شرح النقطة بنجاح (SSE stream).' })
   async explainPoint(
     @Body() body: ExplainPointDto,
-    @Headers('authorization') token: string,
+
     @Res() res: Response,
   ) {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const bearerToken = token?.split(' ')[1];
     const result = await this.aiService.explainPoint(
       body.point_title,
       body.teaching_style,
-      bearerToken,
+     
     );
 
     const words = result.explanation.split(' ');
@@ -60,10 +59,9 @@ export class AiIntegrationController {
   @ApiResponse({ status: 200, description: 'تم توليد السؤال بنجاح.' })
   async generateQuestion(
     @Body() body: GenerateQuestionDto,
-    @Headers('authorization') token: string,
+   
   ) {
-    const bearerToken = token?.split(' ')[1];
-    return this.aiService.generateQuestion(body.point_title, bearerToken);
+    return this.aiService.generateQuestion(body.point_title);
   }
 
   @Post('evaluate-answer')
@@ -74,14 +72,12 @@ export class AiIntegrationController {
   @ApiResponse({ status: 200, description: 'تم تقييم الإجابة بنجاح.' })
   async evaluateAnswer(
     @Body() body: EvaluateAnswerDto,
-    @Headers('authorization') token: string,
+   
   ) {
-    const bearerToken = token?.split(' ')[1];
     return this.aiService.evaluateAnswer(
       body.point_title,
       body.question_text,
       body.student_answer,
-      bearerToken,
     );
   }
 }
